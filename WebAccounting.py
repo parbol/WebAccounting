@@ -15,21 +15,47 @@ from simon.header.pages import HeaderPage
 from simon.pages import BasePage
 
 
-def newMessages(oldList, newList):
+#############################################################
+def extractNew(oldList, newList):
 
     Nnew = len(newList)
-    for i in range(0, Nnew):
-        if newList[Nnew-1-i] != oldList[Nold-1]:
-            reallyNew.append(Nnew)
+    if not Nnew:
+        return newList
+    Nold = len(oldList)
+    if not Nold:
+        return newList
+    newWord = []
+    for i in reversed(range(Nnew)):
+        isEqual = True
+        if newList[i] != oldList[Nold-1] and isEqual:
+            newWord.append(newList[i])
+        else:
+            for j in range(i-1):
+                if newList[i-1-j] != oldList[Nold-1-j]:
+                    isEqual = False
+                    break
+        if isEqual == False:
+            break
+    newWord.reverse()
+
+    return newWord
+
+
+#############################################################
+def process(newMessages):
+
+    print('-------------------New messages:-------------------') 
+    for e in newMessages:
+        print(e)
 
 
 
-
+#############################################################
 if __name__=='__main__':
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     driver.maximize_window()
-    wait = WebDriverWait(driver, 20)
+    wait = WebDriverWait(driver, 40)
     login_page = LoginPage(driver)
     login_page.load()
 
@@ -41,15 +67,22 @@ if __name__=='__main__':
     collectionOfMessages = []
 
     while True:
-        message = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[@class='copyable-text']"))) 
+        message = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//div[contains(@class,'copyable-text')]"))) 
+        #message = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//span[@data-testid='selectable-text']"))) 
         newCollectionOfMessages = []
         for i in message:
+            #parent = i.parent
+            #gparent = parent.parent
             try:
-                texto = i.text
+                metadata = i.get_attribute('data-pre-plain-text')
+                texto = metadata + ' ' + i.text
                 newCollectionOfMessages.append(texto)
             except:
                 pass
-        newMessages(collectionOfMessages, newCollectionOfMessages)
+        newMessages = extractNew(collectionOfMessages, newCollectionOfMessages)
+        if len(newMessages) != 0:
+            process(newMessages)
+            collectionOfMessages.extend(newMessages)
         time.sleep(10)
 
     # 3. Logout
