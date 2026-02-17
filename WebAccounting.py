@@ -73,8 +73,10 @@ if __name__=='__main__':
         for i in message:
             #parent = i.parent
             #gparent = parent.parent
+            metadata = i.get_attribute('data-pre-plain-text')
+            if metadata == None:
+                continue
             try:
-                metadata = i.get_attribute('data-pre-plain-text')
                 texto = metadata + ' ' + i.text
                 newCollectionOfMessages.append(texto)
             except:
