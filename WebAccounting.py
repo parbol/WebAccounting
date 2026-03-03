@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.keys import Keys
 
 from simon.accounts.pages import LoginPage
 from simon.header.pages import HeaderPage
@@ -37,7 +38,7 @@ def extractNew(oldList, newList):
         if isEqual == False:
             break
     newWord.reverse()
-
+    
     return newWord
 
 
@@ -48,6 +49,13 @@ def process(newMessages):
     for e in newMessages:
         print(e)
 
+
+#############################################################
+def sendMessage(wait, text):
+
+    box = wait.until(EC.presence_of_all_elements_located((By.XPATH, "//p[contains(@class,'copyable-text')]"))) 
+    box[1].send_keys(text)
+    box[1].send_keys(Keys.ENTER)
 
 
 #############################################################
@@ -85,6 +93,7 @@ if __name__=='__main__':
         if len(newMessages) != 0:
             process(newMessages)
             collectionOfMessages.extend(newMessages)
+        sendMessage(wait, 'este es un mensaje automatico')
         time.sleep(10)
 
     # 3. Logout
