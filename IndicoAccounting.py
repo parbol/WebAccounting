@@ -11,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 import getpass
-
+import datetime
 
 #Technical stuff
 NORMAL = '\033[95m'
@@ -19,6 +19,13 @@ OKBLUE = '\033[94m'
 GOOD = '\033[92m'
 ERROR = '\033[91m'
 ENDC = '\033[0m'
+
+
+#############################################################
+def printLog(color, message):
+
+    now = str(datetime.datetime.now())
+    print(color + '[' + now + '] ' + message + ENDC)
 
 
 #############################################################
@@ -115,9 +122,19 @@ def sendCreateBooking(wait, meetingName):
         return False
     return True
 
+#############################################################
+def availableRoom(driver, wait):
+    driver.implicitly_wait(3)
+    try:
+        driver.find_element(By.XPATH, '//i[@class="warning sign icon"]')
+        printLog(GOOD, 'There are no rooms available')
+        return 0
+    except:
+        return 1
+
 
 #############################################################
-def makeBooking(wait, date, time1, time2, room, meetingName):
+def makeBooking(driver, wait, date, time1, time2, room, meetingName):
     
     # 0 is unknown error
     # 1 is there are no matches for that time/date
@@ -129,6 +146,8 @@ def makeBooking(wait, date, time1, time2, room, meetingName):
     if not setTheRoom(wait, room):
         return 0
     if not sendButtom(wait):
+        return 0
+    if not availableRoom(driver, wait):
         return 1
     if not sendConfirm(wait):
         return 0
@@ -140,48 +159,29 @@ def makeBooking(wait, date, time1, time2, room, meetingName):
 
 
 #############################################################
-def checkProblem(wait):
-
-    try:
-        buttom2 = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@class="ui icon warning message rb-client-js-modules-bookRoom-___BookRoom-module__message-nothing___tDcD5"]')))
-        printLog(GOOD, 'There are no rooms available')
-        return 2
-    except:
-        printLog(ERROR, 'Unexpected error with the check page')
-        return 0
-
-#############################################################
 if __name__=='__main__':
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     #driver.maximize_window()
     driver.get("https://indico.ifca.es/rooms/book")
     wait = WebDriverWait(driver, 40)
-    passa = getpass.getpass("Press enter")
-
+    printLog(GOOD, 'Please fill in your credentials')
+    passa = getpass.getpass(GOOD + "Press enter when ready" + ENDC)
 
     while True:
 
-        a = makeBooking(wait, '07/03/2026', '19:00', '20:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión grupo de instrumentación')
+        status = makeBooking(driver, wait, '07/03/2026', '19:00', '20:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión grupo de instrumentación')
     
-        if a == 2:
-            printLog(GOOD, 'Meeting was booked')
-        elif a == 1:
-            reason = checkProblem(wait)
-
+        if not status:
+            printLog(ERROR, 'Exiting...')
+            sys.exit()
+        if status == 1:
+            printLog(ERROR, 'Meeting already reserved')
         
-    #        if reason == 'Not possible':
-    #            print('Not possible to perform the reservation')
-    #        else:
-    #            print('Unknown problem')
-    #    else:
-    #        print('Unknown problem')
-    #
-    #    driver.get("https://indico.ifca.es/rooms/book")
-    #    wait = WebDriverWait(driver, 40)
+        printLog(GOOD, 'Meeting was booked successfully')
 
-    
-    passa = getpass.getpass("Press enter")
+        driver.get("https://indico.ifca.es/rooms/book")
+        wait = WebDriverWait(driver, 40)
 
 
     # Close the browser
