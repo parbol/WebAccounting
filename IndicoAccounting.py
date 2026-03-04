@@ -12,6 +12,8 @@ from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 import getpass
 import datetime
+import dateutil
+from dateutil.relativedelta import relativedelta
 
 #Technical stuff
 NORMAL = '\033[95m'
@@ -157,6 +159,37 @@ def makeBooking(driver, wait, date, time1, time2, room, meetingName):
         return 0
     return 2
 
+#############################################################
+def processDate(day, N):
+
+    theDay = 0
+    if day == 'Sunday':
+        theDay = 0
+    elif day == 'Monday':
+        theDay = 1
+    elif day == 'Tuesday':
+        theDay = 2
+    elif day == 'Wednesday':
+        theDay = 3
+    elif day == 'Thursday':
+        theDay = 4
+    elif day == 'Friday':
+        theDay = 5
+    else:
+        theDay = 6
+
+    today = datetime.date.today()
+    weekday = today.weekday()
+    ndays = (theDay-weekday) % 7
+    nextday = today + relativedelta(days=+ndays)
+    currentday = nextday
+    dates = []
+    for i in range(0, N):
+        nextD = nextday + relativedelta(weeks=+i)
+        stringdate = f'{nextD.day}/{nextD.month}/{nextD.year}'
+        dates.append(stringdate)
+    return dates
+
 
 #############################################################
 if __name__=='__main__':
@@ -168,38 +201,33 @@ if __name__=='__main__':
     printLog(GOOD, 'Please fill in your credentials')
     passa = getpass.getpass(GOOD + "Press enter when ready" + ENDC)
 
-    rules = [['Tuesday', '9:30', '11:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)']]
+    #List of rules
+    rules = [['Tuesday', '19:30', '20:30', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Instrumentation meeting']]
+    for i in rules:
+        printLog(GOOD, 'Request to make a meeting with title: ' + i[4] + ', in room: ' + i[3] + ' from: ' + i[1] + ' to: ' + i[2])
 
-    processDate(rules)
+    while True:
 
-# Date to check in date format:
-check_date = datetime.datetime.strptime("2021-07-08", "%Y-%d-%m").date()
+        #Condition to trigger the booking (not implemented yet)
 
-# Current week number, make it modulo so that the last week is week 0:
-curr_week = int(datetime.date.today().strftime("%V"))
-
-# Compare week numbers:
-if curr_week == (int(check_date.strftime("%V"))-1):
-    # Date is within next week, put code here
-    pass
-elif curr_week == (int(check_date.strftime("%V"))-2):
-    # Date is the week after next week, put code here
-    pass
-
-    while False:
-
-        status = makeBooking(driver, wait, '07/03/2026', '19:00', '20:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión grupo de instrumentación')
+        for rule in rules:
+            
+            listOfDates = processDate(rule[0], 5)
+            
+            for date in listOfDates:
+            
+                status = makeBooking(driver, wait, date, rule[1], rule[2], rule[3], rule[4])
     
-        if not status:
-            printLog(ERROR, 'Exiting...')
-            sys.exit()
-        if status == 1:
-            printLog(ERROR, 'Meeting already reserved')
+                if not status:
+                    printLog(ERROR, 'Exiting...')
+                    sys.exit()
+                if status == 1:
+                    printLog(ERROR, 'Meeting already reserved')
         
-        printLog(GOOD, 'Meeting was booked successfully')
+                printLog(GOOD, 'Meeting was booked successfully')
 
-        driver.get("https://indico.ifca.es/rooms/book")
-        wait = WebDriverWait(driver, 40)
+                driver.get("https://indico.ifca.es/rooms/book")
+                wait = WebDriverWait(driver, 40)
 
 
     # Close the browser
