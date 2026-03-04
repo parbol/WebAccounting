@@ -168,7 +168,25 @@ if __name__=='__main__':
     printLog(GOOD, 'Please fill in your credentials')
     passa = getpass.getpass(GOOD + "Press enter when ready" + ENDC)
 
-    while True:
+    rules = [['Tuesday', '9:30', '11:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)']]
+
+    processDate(rules)
+
+# Date to check in date format:
+check_date = datetime.datetime.strptime("2021-07-08", "%Y-%d-%m").date()
+
+# Current week number, make it modulo so that the last week is week 0:
+curr_week = int(datetime.date.today().strftime("%V"))
+
+# Compare week numbers:
+if curr_week == (int(check_date.strftime("%V"))-1):
+    # Date is within next week, put code here
+    pass
+elif curr_week == (int(check_date.strftime("%V"))-2):
+    # Date is the week after next week, put code here
+    pass
+
+    while False:
 
         status = makeBooking(driver, wait, '07/03/2026', '19:00', '20:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión grupo de instrumentación')
     
