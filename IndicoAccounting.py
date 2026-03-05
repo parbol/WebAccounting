@@ -24,7 +24,12 @@ ERROR = '\033[91m'
 ENDC = '\033[0m'
 
 #The list of rules
-rules = [['Sunday', '19:30', '20:30', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Instrumentation meeting']]
+rules = [
+        ['Monday', '10:00', '10:59', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión análisis CMS'], ['Monday', '11:00', '12:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de módulos CMS'],
+        ['Tuesday', '09:30', '11:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de instrumentación SIFCA'],
+        ['Wednesday', '09:30', '11:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión IFCA-Uniovi análisis'],
+        ['Thursday', '09:30', '10:30', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de módulos CMS']
+        ]
 
 #The global coordinates
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
