@@ -219,8 +219,7 @@ def estimateDate(day):
         theDay = 6
 
     today = datetime.date.today()
-    nextMonth = today + relativedelta(months=+2)
-    target = nextMonth + relativedelta(days=-1)
+    target = today + relativedelta(days=+59)
     weekday = target.weekday()
     if weekday != theDay:
         printLog(GOOD, 'Nothing to do for this date and rule')
@@ -260,7 +259,7 @@ if __name__=='__main__':
     for i in rules:
         printLog(GOOD, 'Request to make a meeting with title: ' + i[4] + ', in room: ' + i[3] + ' from: ' + i[1] + ' to: ' + i[2])
 
-    schedule.every().day.at("16:35").do(update_booking)
+    schedule.every().day.at("08:42").do(update_booking)
 
     while True:
 
