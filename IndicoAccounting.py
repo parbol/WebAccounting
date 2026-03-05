@@ -264,7 +264,7 @@ if __name__=='__main__':
     for i in rules:
         printLog(GOOD, 'Request to make a meeting with title: ' + i[4] + ', in room: ' + i[3] + ' from: ' + i[1] + ' to: ' + i[2])
 
-    schedule.every().day.at("08:42").do(update_booking)
+    schedule.every().day.at("00:00").do(update_booking)
 
     while True:
 
