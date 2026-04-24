@@ -2,6 +2,7 @@
 # Whatsapp web accounting                              ######
 #############################################################
 import time
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -28,7 +29,8 @@ rules = [
         ['Monday', '10:00', '10:59', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión análisis CMS'], ['Monday', '11:00', '12:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de módulos CMS'],
         ['Tuesday', '09:30', '11:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de instrumentación SIFCA'],
         ['Wednesday', '09:30', '11:00', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión IFCA-Uniovi análisis'],
-        ['Thursday', '09:30', '10:30', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de módulos CMS']
+        ['Thursday', '09:30', '10:30', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de módulos CMS'],
+        ['Thursday', '12:30', '13:30', 'IFCA/P0-017 - Sala Teresa Rodrigo Anoro (Sala de Juntas)', 'Reunión de física médica']
         ]
 
 #The global coordinates
@@ -41,7 +43,7 @@ wait = WebDriverWait(driver, 40)
 def printLog(color, message):
 
     now = str(datetime.datetime.now())
-    print(color + '[' + now + '] ' + message + ENDC)
+    print(OKBLUE + '[' + now + '] ' + GOOD + message + ENDC)
 
 
 #############################################################
@@ -226,32 +228,44 @@ def estimateDate(day):
     today = datetime.date.today()
     target = today + relativedelta(days=+59)
     weekday = target.weekday()
-    if weekday != theDay:
-        printLog(GOOD, 'Nothing to do for this date and rule')
-        return []
     stringdate = f'{target.day}/{target.month}/{target.year}'
-    return [stringdate]
+    if weekday != theDay:
+        printLog(GOOD, 'No scheduled meetings on ' + stringdate)
+        return ''
+    return stringdate
 
 
 #############################################################
 def update_booking():
- 
-    for rule in rules:    
-        
-        listOfDates = estimateDate(rule[0])
-        for date in listOfDates:          
 
-            printLog(GOOD, 'Booking: ' + rule[4] + ', in room: ' + rule[3] + ' on ' + date + ' from: ' + rule[1] + ' to: ' + rule[2])    
-            status = makeBooking(date, rule[1], rule[2], rule[3], rule[4])
-
-            if not status:
-                printLog(ERROR, 'Exiting...')
-                sys.exit()
-            if status == 1:
-                printLog(ERROR, 'Meeting already reserved')
+    counter = 0
+    trials = 0
+    while counter < len(rules):
         
+        rule = rules[counter] 
+        date = estimateDate(rule[0])
+        if date == '':
+            counter = counter + 1
+            continue
+        printLog(GOOD, 'Booking: ' + rule[4] + ', in room: ' + rule[3] + ' on ' + date + ' from: ' + rule[1] + ' to: ' + rule[2])    
+        status = makeBooking(date, rule[1], rule[2], rule[3], rule[4])
+
+        if status == 0:
+            if trials < 10:
+                trials = trials + 1
+                printLog(ERROR, 'Retrying in 30 seconds...')
+                time.sleep(30)
+                driver.get("https://indico.ifca.es/rooms/book")
+                continue
+            else:
+                printLog(ERROR, 'The meeting could not be reserved')
+        elif status == 1:
+            printLog(ERROR, 'Meeting already reserved')
+        elif status == 2:
+            trials = 0
             printLog(GOOD, 'Meeting was booked successfully')
             driver.get("https://indico.ifca.es/rooms/book")
+            counter = counter + 1
 
 
 #############################################################
@@ -262,7 +276,7 @@ if __name__=='__main__':
 
     #List of rules
     for i in rules:
-        printLog(GOOD, 'Request to make a meeting with title: ' + i[4] + ', in room: ' + i[3] + ' from: ' + i[1] + ' to: ' + i[2])
+        printLog(GOOD, 'Request to make a meeting with title: ' + i[4] + ', in room: ' + i[3] + ' from: ' + i[1] + ' to: ' + i[2] + ' on: ' + i[0] + 's')
 
     schedule.every().day.at("00:00").do(update_booking)
 
